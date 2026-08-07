@@ -110,51 +110,74 @@
     0%, 100% { transform: translateX(-50%) translateY(0); }
     50%      { transform: translateX(-50%) translateY(-2.2vmin); }
   }
-  .planet {
+  .planet { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: #120A22; }
+
+  /* rotating surface — mottled bands scroll under the fixed lighting to read as spin */
+  .surface {
     position: absolute; inset: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 26%, #4A3A5E, #2A2040 24%, #150D26 52%, #0A0616 100%);
-    box-shadow:
-      inset -18vmin -12vmin 34vmin rgba(0,0,0,0.82),
-      inset 4vmin 3vmin 16vmin rgba(240, 162, 78, 0.06);
+    background:
+      radial-gradient(circle at 18% 34%, rgba(128, 100, 148, 0.55), transparent 22%),
+      radial-gradient(circle at 60% 62%, rgba(70, 54, 92, 0.62), transparent 26%),
+      radial-gradient(circle at 86% 30%, rgba(158, 112, 88, 0.34), transparent 20%),
+      radial-gradient(circle at 40% 82%, rgba(92, 70, 116, 0.5), transparent 24%),
+      repeating-linear-gradient(90deg, rgba(255,240,225,0.02) 0 6vmin, transparent 6vmin 15vmin),
+      linear-gradient(180deg, #2C2142, #1A1130);
+    background-size: 40vmin 100%;
+    background-repeat: repeat;
+    animation: spin 44s linear infinite;
   }
-  .planet::before { /* warm-lit limb catching the star */
-    content: '';
-    position: absolute; inset: -0.8vmin;
-    border-radius: 50%;
+  @keyframes spin { to { background-position: -40vmin 0; } }
+
+  /* fixed spherical shading — light source top-left, deep terminator bottom-right */
+  .shade {
+    position: absolute; inset: 0; border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 24%, rgba(255, 232, 205, 0.14), transparent 42%),
+      radial-gradient(circle at 30% 26%, transparent 44%, rgba(0,0,0,0.55) 100%);
+    box-shadow: inset -16vmin -12vmin 30vmin rgba(0,0,0,0.82);
+  }
+
+  /* warm-lit limb catching the star, gently pulsing */
+  .rim {
+    position: absolute; inset: -0.8vmin; border-radius: 50%;
     background: radial-gradient(circle at 28% 22%, rgba(245,172,92,0.85), rgba(224,99,47,0.35) 12%, transparent 34%);
     filter: blur(3px);
     mix-blend-mode: screen;
     opacity: 0.85;
     animation: rim-pulse 9s ease-in-out infinite;
   }
-  @keyframes rim-pulse { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
-  .planet::after { /* slow atmospheric bands */
-    content: '';
-    position: absolute; inset: 0;
-    border-radius: 50%;
-    background: repeating-linear-gradient(92deg, rgba(255,240,225,0.014) 0 5vmin, transparent 5vmin 13vmin);
-    filter: blur(2px);
-    opacity: 0.6;
-    -webkit-mask: radial-gradient(circle at 30% 26%, #000 40%, transparent 70%);
-            mask: radial-gradient(circle at 30% 26%, #000 40%, transparent 70%);
-    animation: band-shift 90s linear infinite;
-  }
-  @keyframes band-shift { from { background-position: 0 0; } to { background-position: 52vmin 0; } }
+  @keyframes rim-pulse { 0%, 100% { opacity: 0.72; } 50% { opacity: 1; } }
 
-  /* occasional shooting star */
+  /* a small moon orbiting the planet */
+  .moon-orbit {
+    position: absolute; inset: -7vmin;
+    border-radius: 50%;
+    animation: orbit 32s linear infinite;
+  }
+  @keyframes orbit { to { transform: rotate(360deg); } }
+  .moon {
+    position: absolute; top: -1.5vmin; left: 50%;
+    width: 3vmin; height: 3vmin; margin-left: -1.5vmin;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 34%, #ded5e8, #7a688a 58%, #3c3049);
+    box-shadow: 0 0 10px rgba(220, 205, 245, 0.45);
+  }
+
+  /* periodic shooting stars, staggered across the sky */
   .shoot {
-    position: absolute; top: 14%; left: -10%;
-    width: 140px; height: 1px;
+    position: absolute;
+    width: 150px; height: 1px;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9));
     filter: drop-shadow(0 0 4px rgba(255,255,255,0.7));
     opacity: 0;
-    animation: shoot 11s ease-in infinite;
   }
+  .shoot.a { top: 12%; left: -12%; animation: shoot 9s ease-in 1s infinite; }
+  .shoot.b { top: 34%; left: -12%; animation: shoot 12s ease-in 5.5s infinite; }
+  .shoot.c { top: 6%;  left: -12%; animation: shoot 15s ease-in 10s infinite; }
   @keyframes shoot {
-    0%   { transform: translate(0, 0) rotate(18deg); opacity: 0; }
-    3%   { opacity: 1; }
-    9%   { transform: translate(70vw, 26vh) rotate(18deg); opacity: 0; }
+    0%  { transform: translate(0, 0) rotate(16deg); opacity: 0; }
+    2%  { opacity: 1; }
+    12% { transform: translate(78vw, 26vh) rotate(16deg); opacity: 0; }
     100% { opacity: 0; }
   }
 
@@ -219,7 +242,7 @@
   @keyframes fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
   @media (prefers-reduced-motion: reduce) {
-    .nebula, .stars, .planet-wrap, .planet::before, .planet::after, .shoot, h1, .cta { animation: none !important; }
+    .nebula, .stars, .planet-wrap, .surface, .rim, .moon-orbit, .shoot, h1, .cta { animation: none !important; }
     .shoot { display: none; }
   }
 </style>
@@ -231,8 +254,17 @@
     <div class="stars s1"></div>
     <div class="stars s2"></div>
     <div class="stars s3"></div>
-    <div class="shoot"></div>
-    <div class="planet-wrap"><div class="planet"></div></div>
+    <div class="shoot a"></div>
+    <div class="shoot b"></div>
+    <div class="shoot c"></div>
+    <div class="planet-wrap">
+      <div class="planet">
+        <div class="surface"></div>
+        <div class="shade"></div>
+        <div class="rim"></div>
+      </div>
+      <div class="moon-orbit"><span class="moon"></span></div>
+    </div>
     <div class="vignette"></div>
   </div>
 
